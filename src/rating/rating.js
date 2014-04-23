@@ -6,63 +6,58 @@ angular.module('ui.bootstrap.rating', [])
   stateOff: null
 })
 
-.controller('RatingController', ['$scope', '$attrs', '$parse', 'ratingConfig', function($scope, $attrs, $parse, ratingConfig) {
-  var ngModelCtrl  = {$setViewValue: angular.noop};
+.controller('RatingController', ['$scope', '$attrs', 'ratingConfig', function($scope, $attrs, ratingConfig) {
+  var ngModelCtrl  = { $setViewValue: angular.noop };
 
-  this.maxRange = angular.isDefined($attrs.max) ? $scope.$parent.$eval($attrs.max) : ratingConfig.max;
-  this.stateOn = angular.isDefined($attrs.stateOn) ? $scope.$parent.$eval($attrs.stateOn) : ratingConfig.stateOn;
-  this.stateOff = angular.isDefined($attrs.stateOff) ? $scope.$parent.$eval($attrs.stateOff) : ratingConfig.stateOff;
-  
   this.init = function(ngModelCtrl_) {
     ngModelCtrl = ngModelCtrl_;
     ngModelCtrl.$render = this.render;
-    
-     $scope.range = this.buildTemplateObjects(
-      angular.isDefined($attrs.ratingStates) ? $scope.$parent.$eval($attrs.ratingStates) : new Array(this.maxRange)
-    );
+
+    this.stateOn = angular.isDefined($attrs.stateOn) ? $scope.$parent.$eval($attrs.stateOn) : ratingConfig.stateOn;
+    this.stateOff = angular.isDefined($attrs.stateOff) ? $scope.$parent.$eval($attrs.stateOff) : ratingConfig.stateOff;
+
+    var ratingStates = angular.isDefined($attrs.ratingStates) ? $scope.$parent.$eval($attrs.ratingStates) :
+                        new Array( angular.isDefined($attrs.max) ? $scope.$parent.$eval($attrs.max) : ratingConfig.max );
+    $scope.range = this.buildTemplateObjects(ratingStates);
   };
 
   this.buildTemplateObjects = function(states) {
-    var defaultOptions = {
-      stateOn: this.stateOn,
-      stateOff: this.stateOff
-    };
-
     for (var i = 0, n = states.length; i < n; i++) {
-      states[i] = angular.extend({ index: i }, defaultOptions, states[i]);
+      states[i] = angular.extend({ index: i }, { stateOn: this.stateOn, stateOff: this.stateOff }, states[i]);
     }
     return states;
   };
 
   $scope.rate = function(value) {
-    if ( !$scope.readonly ) {
+    if ( !$scope.readonly && value >= 0 && value <= $scope.range.length ) {
       ngModelCtrl.$setViewValue(value);
       ngModelCtrl.$render();
     }
   };
 
   $scope.enter = function(value) {
-    if ( ! $scope.readonly ) {
-      $scope.val = value;
+    if ( !$scope.readonly ) {
+      $scope.value = value;
     }
     $scope.onHover({value: value});
   };
 
   $scope.reset = function() {
-    $scope.val = ngModelCtrl.$viewValue;
+    $scope.value = ngModelCtrl.$viewValue;
     $scope.onLeave();
   };
-  
-  this.render = function() {
-    $scope.val = ngModelCtrl.$viewValue;
+
+  $scope.onKeydown = function(evt) {
+    if (/(37|38|39|40)/.test(evt.which)) {
+      evt.preventDefault();
+      evt.stopPropagation();
+      $scope.rate( $scope.value + (evt.which === 38 || evt.which === 39 ? 1 : -1) );
+    }
   };
 
-  $scope.readonly = false;
-  if ($attrs.readonly) {
-    $scope.$parent.$watch($parse($attrs.readonly), function(value) {
-      $scope.readonly = !!value;
-    });
-  }
+  this.render = function() {
+    $scope.value = ngModelCtrl.$viewValue;
+  };
 }])
 
 .directive('rating', function() {
@@ -70,6 +65,7 @@ angular.module('ui.bootstrap.rating', [])
     restrict: 'EA',
     require: ['rating', 'ngModel'],
     scope: {
+      readonly: '=?',
       onHover: '&',
       onLeave: '&'
     },
