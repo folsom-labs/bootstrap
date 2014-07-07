@@ -64,7 +64,9 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
    * Returns the actual instance of the $tooltip service.
    * TODO support multiple triggers
    */
-  this.$get = [ '$window', '$compile', '$timeout', '$parse', '$document', '$position', '$interpolate', function ( $window, $compile, $timeout, $parse, $document, $position, $interpolate ) {
+  this.$get = [ '$window', '$compile', '$timeout', '$parse', '$document', '$position', '$interpolate', '$http', '$templateCache',
+  function ( $window, $compile, $timeout, $parse, $document, $position, $interpolate, $http, $templateCache ) {
+
     return function $tooltip ( type, prefix, defaultTriggerShow ) {
       var options = angular.extend( {}, defaultOptions, globalOptions );
 
@@ -102,6 +104,7 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
           'placement="'+startSym+'tt_placement'+endSym+'" '+
           'animation="tt_animation" '+
           'is-open="tt_isOpen"'+
+          'template="tt_template"'+
           '>'+
         '</div>';
 
@@ -186,7 +189,7 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
               // Set the initial positioning.
               tooltip.css({ top: 0, left: 0, display: 'block' });
 
-              // Now we add it to the DOM because need some info about it. But it's not 
+              // Now we add it to the DOM because need some info about it. But it's not
               // visible yet anyway.
               if ( appendToBody ) {
                   $document.find( 'body' ).append( tooltip );
@@ -214,7 +217,7 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
               $timeout.cancel( popupTimeout );
               popupTimeout = null;
 
-              // And now we remove it from the DOM. However, if we have animation, we 
+              // And now we remove it from the DOM. However, if we have animation, we
               // need to wait for it to expire beforehand.
               // FIXME: this is a placeholder for a port of the transitions library.
               if ( scope.tt_animation ) {
@@ -229,7 +232,7 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
             function createTooltip() {
               // There can only be one tooltip element per directive shown at once.
               if (tooltip) {
-                removeTooltip();
+                return;
               }
               tooltip = tooltipLinker(scope, function () {});
 
@@ -237,11 +240,20 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
               scope.$digest();
             }
 
-            function removeTooltip() {
+            function removeTooltip( destroy ) {
               transitionTimeout = null;
               if (tooltip) {
-                tooltip.remove();
-                tooltip = null;
+               if (destroy) {
+                  tooltip.remove();
+                  tooltip = null;
+                } else {
+                  // equals to "tooltip.detach();"
+                  angular.forEach( tooltip, function( e ) {
+                    if (e.parentNode) {
+                      e.parentNode.removeChild( e );
+                    }
+                  } );
+                }
               }
             }
 
@@ -268,6 +280,21 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
               var delay = parseInt( val, 10 );
               scope.tt_popupDelay = ! isNaN(delay) ? delay : options.popupDelay;
             });
+
+            attrs.$observe( 'popoverTemplate', function ( val ) {
+              if ( !val ) { return; }
+              $http.get( val, { cache: $templateCache } )
+              .then( function ( response ) {
+                scope.tt_template = $compile( response.data.trim() )( scope.$parent );
+              });
+            });
+
+            var unregisterTriggers = function() {
+              if (hasRegisteredTriggers) {
+                element.unbind( triggers.show, showTooltipBind );
+                element.unbind( triggers.hide, hideTooltipBind );
+              }
+            };
 
             var unregisterTriggers = function () {
               element.unbind(triggers.show, showTooltipBind);
@@ -310,7 +337,7 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
               $timeout.cancel( transitionTimeout );
               $timeout.cancel( popupTimeout );
               unregisterTriggers();
-              removeTooltip();
+              removeTooltip( true );
             });
           };
         }
