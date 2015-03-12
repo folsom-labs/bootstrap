@@ -64,7 +64,8 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
    * Returns the actual instance of the $tooltip service.
    * TODO support multiple triggers
    */
-  this.$get = [ '$window', '$compile', '$timeout', '$document', '$position', '$interpolate', function ( $window, $compile, $timeout, $document, $position, $interpolate ) {
+  this.$get = [ '$window', '$compile', '$timeout', '$document', '$position', '$interpolate', '$http', '$templateCache',
+  function ( $window, $compile, $timeout, $document, $position, $interpolate, $http, $templateCache ) {
     return function $tooltip ( type, prefix, defaultTriggerShow ) {
       var options = angular.extend( {}, defaultOptions, globalOptions );
 
@@ -102,6 +103,7 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
           'placement="'+startSym+'placement'+endSym+'" '+
           'animation="animation" '+
           'is-open="isOpen"'+
+          'template="tt_template"'+
           '>'+
         '</div>';
 
@@ -109,6 +111,10 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
         restrict: 'EA',
         compile: function (tElem, tAttrs) {
           var tooltipLinker = $compile( template );
+
+          if (tAttrs.popoverTemplate) {
+            var httpTemplate = $http.get( tAttrs.popoverTemplate, { cache: $templateCache } );
+          }
 
           return function link ( scope, element, attrs ) {
             var tooltip;
@@ -119,6 +125,13 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
             var triggers = getTriggers( undefined );
             var hasEnableExp = angular.isDefined(attrs[prefix+'Enable']);
             var ttScope = scope.$new(true);
+
+            if (httpTemplate) {
+              httpTemplate.then( function(response) {
+                ttScope.tt_template = $compile( response.data.trim() )( ttScope.$parent );
+              });
+            }
+
 
             var positionTooltip = function () {
 
@@ -226,7 +239,8 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
             function createTooltip() {
               // There can only be one tooltip element per directive shown at once.
               if (tooltip) {
-                removeTooltip();
+                return;  ///tk?
+                // removeTooltip();
               }
               tooltipLinkedScope = ttScope.$new();
               tooltip = tooltipLinker(tooltipLinkedScope, function (tooltip) {
@@ -238,15 +252,22 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
               });
             }
 
-            function removeTooltip() {
+            function removeTooltip(destroy) {
               transitionTimeout = null;
               if (tooltip) {
-                tooltip.remove();
-                tooltip = null;
-              }
-              if (tooltipLinkedScope) {
-                tooltipLinkedScope.$destroy();
-                tooltipLinkedScope = null;
+                if (destroy) {
+                  if (destroy) {
+                    tooltip.remove();
+                    tooltip = null;
+                  }
+
+                  if (tooltipLinkedScope) {
+                    tooltipLinkedScope.$destroy();
+                    tooltipLinkedScope = null;
+                  }
+                } else {
+                  tooltip.hide()
+                }
               }
             }
 
@@ -287,17 +308,30 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
             };
 
             function prepTriggers() {
-              var val = attrs[ prefix + 'Trigger' ];
+              var val = attrs[ prefix + 'Trigger' ],
+                  toggle = attrs[ prefix + 'Toggle' ];
               unregisterTriggers();
 
-              triggers = getTriggers( val );
 
-              if ( triggers.show === triggers.hide ) {
-                element.bind( triggers.show, toggleTooltipBind );
-              } else {
-                element.bind( triggers.show, showTooltipBind );
-                element.bind( triggers.hide, hideTooltipBind );
+              if(val === 'manual' && toggle) {
+                scope.$watch(toggle, function(newVal, oldVal) {
+                  if(newVal) {
+                    $timeout(showTooltipBind);
+                  } else {
+                    $timeout(hideTooltipBind);
+                  }
+                });
+              } else{
+                triggers = getTriggers( val );
+
+                if ( triggers.show === triggers.hide ) {
+                  element.bind( triggers.show, toggleTooltipBind );
+                } else {
+                  element.bind( triggers.show, showTooltipBind );
+                  element.bind( triggers.hide, hideTooltipBind );
+                }
               }
+
             }
             prepTriggers();
 
@@ -323,7 +357,7 @@ angular.module( 'ui.bootstrap.tooltip', [ 'ui.bootstrap.position', 'ui.bootstrap
               $timeout.cancel( transitionTimeout );
               $timeout.cancel( popupTimeout );
               unregisterTriggers();
-              removeTooltip();
+              removeTooltip(true);
               ttScope = null;
             });
           };

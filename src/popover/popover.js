@@ -16,4 +16,25 @@ angular.module( 'ui.bootstrap.popover', [ 'ui.bootstrap.tooltip' ] )
 
 .directive( 'popover', [ '$tooltip', function ( $tooltip ) {
   return $tooltip( 'popover', 'popover', 'click' );
+}])
+
+.directive( 'popoverTemplatePopup', [ function () {
+  return {
+    restrict: 'EA',
+    replace: true,
+    scope: { title: '@', template: '=', placement: '@', animation: '&', isOpen: '&' },
+    templateUrl: 'template/popover/popover-template.html',
+    link: function( scope, iElement ) {
+      var unwatch = scope.$watch( 'template', function( template ) {
+        if ( !template ) { return; }
+        angular.element( iElement[0].querySelector( '.popover-content' ) ).append( template );
+        unwatch();
+      });
+    }
+  };
+}])
+
+.directive( 'popoverTemplate', [ '$tooltip', function ( $tooltip ) {
+  return $tooltip( 'popoverTemplate', 'popover', 'click' );
 }]);
+
