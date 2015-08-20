@@ -74,9 +74,9 @@
             <p>
                 <a class="btn btn-outline-inverse btn-lg" href="https://github.com/angular-ui/bootstrap"><i class="icon-github"></i>Code on Github</a>
                 <button type="button" class="btn btn-outline-inverse btn-lg" ng-click="showDownloadModal()">
-                    <i class="glyphicon glyphicon-download-alt"></i> Download <small>(<%= pkg.version%>)</small>
+                    <i class="fa fa-download-alt"></i> Download <small>(<%= pkg.version%>)</small>
                 </button>
-                <button type="button" class="btn btn-outline-inverse btn-lg" ng-click="showBuildModal()"><i class="glyphicon glyphicon-wrench"></i> Create a Build</button>
+                <button type="button" class="btn btn-outline-inverse btn-lg" ng-click="showBuildModal()"><i class="fa fa-wrench"></i> Create a Build</button>
             </p>
         </div>
         <div class="bs-social container">
@@ -177,7 +177,7 @@
                     <h3>Reading the documentation</h3>
                     <p>
                       Each of the directives provided in <code>ui-bootstrap</code> have documentation and interactive Plunker examples. There is also a list of settings which outline the default
-                      values of settings, and whether they are readonly. In addition to this, some settings have an eye icon next to them like this <i class="glyphicon glyphicon-eye-open"></i>. The
+                      values of settings, and whether they are readonly. In addition to this, some settings have an eye icon next to them like this <i class="fa fa-eye-open"></i>. The
                       eye means that the setting has an Angular <a href="https://docs.angularjs.org/api/ng/type/$rootScope.Scope#$watch" title="Angular $watch" target="_blank">$watch</a> listener applied to it.
                     </p>
                 </section>
@@ -200,7 +200,7 @@
                         <div class="row code">
                             <div class="col-md-12" ng-controller="PlunkerCtrl">
                                 <div class="pull-right">
-                                    <button type="button" class="btn btn-info plunk-btn" ng-click="edit('<%= ngversion%>', '<%= bsversion %>', '<%= pkg.version%>', '<%= module.name %>')"><i class="glyphicon glyphicon-edit"></i> Edit in plunker</button>
+                                    <button type="button" class="btn btn-info plunk-btn" ng-click="edit('<%= ngversion%>', '<%= bsversion %>', '<%= pkg.version%>', '<%= module.name %>')"><i class="fa fa-edit"></i> Edit in plunker</button>
                                 </div>
                                 <tabset>
                                     <tab heading="Markup">
@@ -270,7 +270,7 @@
     </div>
     <div class="modal-footer">
         <a class="btn btn-default" ng-click="cancel()">Close</a>
-        <a class="btn btn-primary" ng-href="{{download('<%= pkg.version%>')}}" download><i class="glyphicon glyphicon-download-alt"></i> Download <%= pkg.version %></a>
+        <a class="btn btn-primary" ng-href="{{download('<%= pkg.version%>')}}" download><i class="fa fa-download-alt"></i> Download <%= pkg.version %></a>
     </div>
 </script>
 <script type="text/ng-template" id="buildModal.html">
@@ -314,7 +314,7 @@
         <a class="btn btn-primary" ng-hide="isOldBrowser()"
             ng-disabled="isOldBrowser() !== false && !selectedModules.length"
             ng-click="selectedModules.length && build(selectedModules, '<%= pkg.version %>')">
-            <i class="glyphicon glyphicon-download-alt"></i> Download {{selectedModules.length}} Modules
+            <i class="fa fa-download-alt"></i> Download {{selectedModules.length}} Modules
         </a>
     </div>
 </script>

@@ -9,10 +9,10 @@ angular.module('ui.bootstrap.demo').controller('RatingDemoCtrl', function ($scop
   };
 
   $scope.ratingStates = [
-    {stateOn: 'glyphicon-ok-sign', stateOff: 'glyphicon-ok-circle'},
-    {stateOn: 'glyphicon-star', stateOff: 'glyphicon-star-empty'},
-    {stateOn: 'glyphicon-heart', stateOff: 'glyphicon-ban-circle'},
-    {stateOn: 'glyphicon-heart'},
-    {stateOff: 'glyphicon-off'}
+    {stateOn: 'fa-ok-sign', stateOff: 'fa-ok-circle'},
+    {stateOn: 'fa-star', stateOff: 'fa-star-empty'},
+    {stateOn: 'fa-heart', stateOff: 'fa-ban-circle'},
+    {stateOn: 'fa-heart'},
+    {stateOff: 'fa-off'}
   ];
 });

@@ -22,7 +22,7 @@ describe('rating directive', function() {
     var stars = getStars();
     var state = [];
     for (var i = 0, n = stars.length; i < n; i++) {
-      state.push( (stars.eq(i).hasClass(classOn || 'glyphicon-star') && ! stars.eq(i).hasClass(classOff || 'glyphicon-star-empty')) );
+      state.push( (stars.eq(i).hasClass(classOn || 'fa-star') && ! stars.eq(i).hasClass(classOff || 'fa-star-empty')) );
     }
     return state;
   }
@@ -33,7 +33,7 @@ describe('rating directive', function() {
       return angular.element(star).attr('title');
     });
   }
-  
+
   function triggerKeyDown(keyCode) {
     var e = $.Event('keydown');
     e.which = keyCode;
@@ -280,13 +280,13 @@ describe('rating directive', function() {
       expect(getState('on', 'off')).toEqual([true, true, true, true, true, false, false, false, false, false]);
     });
   });
-  
+
   describe('Default title', function() {
     it('should return the default title for each star', function() {
       expect(getTitles()).toEqual(['one', 'two', 'three', 'four', 'five']);
     });
   });
-  
+
   describe('shows different title when `max` attribute is greater than the titles array ', function() {
     var originalConfig = {};
     beforeEach(inject(function(ratingConfig) {
@@ -300,12 +300,12 @@ describe('rating directive', function() {
       // return it to the original state
       angular.extend(ratingConfig, originalConfig);
     }));
- 
+
    it('should return the default title for each star', function() {
       expect(getTitles()).toEqual(['one', 'two', 'three', 'four', 'five', '6', '7', '8', '9', '10']);
     });
   });
-  
+
   describe('shows custom titles ', function() {
     it('should return the custom title for each star', function() {
       $rootScope.titles = [44,45,46];
